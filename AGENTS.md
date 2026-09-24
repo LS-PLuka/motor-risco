@@ -6,7 +6,7 @@ Estas instruções valem para todo o repositório `motor-risco`. Antes de altera
 
 ## Responsabilidade do serviço
 
-O `motor-risco` é um microsserviço orientado a eventos. Ele consome eventos de transação, aplica regras antifraude, acumula uma pontuação, classifica o resultado e, quando o contrato de saída estiver definido, publica o resultado da análise.
+O `motor-risco` é um microsserviço orientado a eventos. Ele consome eventos de transação, aplica regras antifraude, acumula uma pontuação, classifica o resultado e publica o resultado da análise.
 
 Não crie Controller REST para iniciar análises. Não replique autenticação JWT, autorização, entidades, DTOs, repositories ou acesso ao banco do `servico-transacao`. O consumidor usa seu próprio contrato local e não depende do nome da classe Java do produtor.
 
@@ -36,13 +36,22 @@ Topologia de entrada:
 
 Centralize os nomes RabbitMQ em configuração. O conversor JSON do consumidor deve aceitar mensagens produzidas com `Jackson2JsonMessageConverter` sem depender do header com o nome Java da classe do produtor. Alterações nessa interoperabilidade exigem teste de integração com RabbitMQ real.
 
+Contrato e topologia de saída:
+
+- exchange direct durável: `risco.exchange`
+- fila durável: `risco.resultados`
+- routing key: `risco.resultado`
+- `ResultadoAnaliseDTO`: `transacaoId` (`UUID`), `pontuacao` (`int`), `nivel` (`NivelRisco`), `regrasDisparadas` (`List<String>`) e `analisadoEm` (`LocalDateTime`)
+
+`analisadoEm` representa o momento em que o motor concluiu a análise. O contrato JSON não depende da classe Java do serviço consumidor.
+
 ## Responsabilidades dos componentes
 
 - `TransacaoConsumer`: recebe o DTO, registra somente identificadores úteis e delega imediatamente ao service. Não contém regras, classificação ou montagem da cadeia.
-- `AnalisadorRiscoService`: cria o contexto, executa toda a cadeia, classifica o score final, cria o resultado e delega sua publicação quando a saída estiver definida.
+- `AnalisadorRiscoService`: cria o contexto, executa toda a cadeia, classifica o score final, cria o resultado e delega sua publicação.
 - `ContextoAnalise`: mantém o mesmo evento, a pontuação acumulada e os nomes das regras disparadas. Expõe operações simples para registrar contribuições sem permitir substituição do contexto.
 - `RegraRisco`: avalia somente sua condição, adiciona pontos e identificação quando disparada e encaminha o mesmo contexto à próxima regra. Nenhuma regra classifica ou publica. A ordem da cadeia é explícita e determinística e a cadeia não para após um disparo.
-- `ResultadoAnalisePublisher`: quando implementado após a definição da topologia, encapsula somente a chamada ao `RabbitTemplate`; não classifica nem recalcula pontuação.
+- `ResultadoAnalisePublisher`: encapsula somente a chamada ao `RabbitTemplate`; não classifica nem recalcula pontuação.
 
 ## Regras e classificação confirmadas
 
@@ -66,7 +75,6 @@ Não implemente nem resolva silenciosamente estas decisões:
 
 - inclusão ou não da `RegraFrequencia`;
 - armazenamento do histórico necessário à frequência (memória, PostgreSQL, Redis ou outra estratégia);
-- contrato completo e topologia RabbitMQ da publicação do resultado.
 
 Não invente exchanges, filas, routing keys, regras ou persistência. Atualize este documento e o README quando essas decisões forem confirmadas.
 
