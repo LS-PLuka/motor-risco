@@ -440,6 +440,7 @@ Sua única dependência externa em runtime é o RabbitMQ.
 
 | Variável | Default | Descrição |
 |---|---|---|
+| `SERVER_PORT` | `8081` | Porta da aplicação |
 | `RABBITMQ_HOST` | `localhost` | Host do broker |
 | `RABBITMQ_PORT` | `5672` | Porta AMQP |
 | `RABBITMQ_USERNAME` | `guest` | Usuário do broker |
@@ -457,7 +458,22 @@ No Windows:
 .\mvnw.cmd spring-boot:run
 ```
 
-A containerização será adicionada em uma branch própria.
+O microsserviço possui um `Dockerfile` próprio com build multi-stage. Para gerar a imagem:
+
+```bash
+docker build -t motor-risco .
+```
+
+Para executar a imagem isoladamente, informe um RabbitMQ acessível pelo container:
+
+```bash
+docker run --rm \
+  -p 8081:8081 \
+  -e RABBITMQ_HOST=<host-do-rabbitmq> \
+  motor-risco
+```
+
+O `motor-risco` não possui Docker Compose próprio. Sua execução integrada com RabbitMQ e os demais serviços acontece pelo Compose do repositório central `antifraud-system`, que configurará `RABBITMQ_HOST=rabbitmq`.
 
 A orquestração completa de PostgreSQL, RabbitMQ, MongoDB e dos três microsserviços pertence ao repositório central `antifraud-system`.
 
