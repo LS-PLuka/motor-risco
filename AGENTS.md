@@ -47,8 +47,12 @@ Centralize os nomes RabbitMQ em configuração. O conversor JSON do consumidor d
 ## Regras e classificação confirmadas
 
 - `RegraValorAlto`: `valor > 5000`, adiciona 30 pontos. Exatamente 5000 não dispara.
-- `RegraHorarioSuspeito`: entre 00:00 e 06:00 e `valor > 2000`, adiciona 20 pontos. A inclusão de 06:00 ainda precisa ser decidida antes de congelar a implementação.
 - `RegraContaNova`: conta com menos de 30 dias no instante de `dataHora` e `valor > 1000`, adiciona 35 pontos. Exatamente 30 dias ou exatamente 1000 não disparam. Use o horário do evento, nunca o relógio atual.
+- `RegraHorarioSuspeito`: horário a partir de 00:00 e antes de 06:00 e `valor > 500`, adiciona 20 pontos. Exatamente 06:00 ou exatamente 500 não disparam.
+- `RegraValorMuitoAltoContaNova`: conta com menos de 30 dias no instante de `dataHora` e `valor > 5000`, adiciona 45 pontos. Exatamente 30 dias ou exatamente 5000 não disparam. Use o horário do evento, nunca o relógio atual.
+- `RegraPaisEstrangeiro`: `codigoPais` diferente de `BRA`, adiciona 25 pontos.
+
+As cinco regras são cumulativas e executadas nesta ordem: `RegraValorAlto`, `RegraContaNova`, `RegraHorarioSuspeito`, `RegraValorMuitoAltoContaNova` e `RegraPaisEstrangeiro`.
 
 Classificação somente após toda a cadeia:
 
@@ -62,8 +66,6 @@ Não implemente nem resolva silenciosamente estas decisões:
 
 - inclusão ou não da `RegraFrequencia`;
 - armazenamento do histórico necessário à frequência (memória, PostgreSQL, Redis ou outra estratégia);
-- condição, limites e pontuação da quinta regra anteriormente chamada `RegraValorMuitoAltoContaNova`;
-- inclusão ou exclusão do instante exato de 06:00 na `RegraHorarioSuspeito`;
 - contrato completo e topologia RabbitMQ da publicação do resultado.
 
 Não invente exchanges, filas, routing keys, regras ou persistência. Atualize este documento e o README quando essas decisões forem confirmadas.
@@ -87,7 +89,7 @@ Não invente exchanges, filas, routing keys, regras ou persistência. Atualize e
 - Teste a classificação nos scores 0, 39, 40, 69, 70 e acima de 70.
 - Consumer é testado como adaptador fino; unidades não carregam Spring sem necessidade.
 - Integrações usam RabbitMQ real com Testcontainers, têm sufixo `*IT` e precisam provar a desserialização do JSON e dos headers produzidos pelo contrato real.
-- O comando completo de validação é `mvn verify`. Testes unitários isolados usam `mvn test`. O wrapper Windows atual não inicia o Maven e deve ser corrigido separadamente antes de ser documentado como comando suportado.
+- O comando completo de validação é `mvn verify` ou `./mvnw verify`. Testes unitários isolados usam `mvn test` ou `./mvnw test`. No Windows, use `mvnw.cmd verify` e `mvnw.cmd test`.
 - Informe no resultado qualquer teste que não tenha sido executado ou que dependa de Docker/infraestrutura indisponível.
 
 Não remova testes para fazer o build passar e não execute commits, branches, merges, push ou outras operações Git que alterem o histórico.

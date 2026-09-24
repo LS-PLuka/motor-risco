@@ -50,6 +50,11 @@ Payload:
 |---|---|---:|
 | `RegraValorAlto` | valor maior que 5000 | 30 |
 | `RegraContaNova` | conta com menos de 30 dias no instante do evento e valor maior que 1000 | 35 |
+| `RegraHorarioSuspeito` | horário a partir de 00:00 e antes de 06:00 e valor maior que 500 | 20 |
+| `RegraValorMuitoAltoContaNova` | conta com menos de 30 dias no instante do evento e valor maior que 5000 | 45 |
+| `RegraPaisEstrangeiro` | `codigoPais` diferente de `BRA` | 25 |
+
+As regras são cumulativas e executadas nesta ordem: `RegraValorAlto`, `RegraContaNova`, `RegraHorarioSuspeito`, `RegraValorMuitoAltoContaNova` e `RegraPaisEstrangeiro`. Os cálculos de idade usam `contaCriadaEm` e `dataHora`, sem consultar o relógio atual.
 
 Classificação final:
 
@@ -61,9 +66,7 @@ Classificação final:
 
 ## Pendências
 
-- decidir se exatamente 06:00 está dentro da janela da `RegraHorarioSuspeito`; a regra não é implementada até essa decisão;
 - decidir se `RegraFrequencia` será incluída e onde seu histórico será armazenado;
-- definir condição e pontuação da quinta regra;
 - confirmar o contrato de saída e a exchange/routing key da publicação do resultado; nenhum publisher é criado antes disso.
 
 ## Executar
@@ -71,15 +74,15 @@ Classificação final:
 Requisitos: Java 21 e Docker para o teste de integração RabbitMQ.
 
 ```bash
-mvn test
-mvn verify
+./mvnw test
+./mvnw verify
 ```
 
 No Windows:
 
 ```powershell
-mvn test
-mvn verify
+.\mvnw.cmd test
+.\mvnw.cmd verify
 ```
 
 Testes unitários não iniciam contexto Spring. O `RabbitMQContratoIT` usa RabbitMQ real via Testcontainers e é executado pelo Maven Failsafe durante `verify`; sem Docker, ele é explicitamente ignorado.
