@@ -10,5 +10,6 @@ public record TransacaoEventoDTO(
         BigDecimal valor,
         String categoria,
         String codigoPais,
-        LocalDateTime dataHora
+        LocalDateTime dataHora,
+        LocalDateTime contaCriadaEm
 ) { }
