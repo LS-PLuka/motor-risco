@@ -9,6 +9,10 @@ Motor de análise de risco do **antifraud-system**. Consome transações de form
 
 Este serviço **não recebe transações via REST, não autentica usuários e não acessa o banco do `servico-transacao`**. Sua responsabilidade começa quando uma mensagem chega em `transacoes.analise` e termina quando o resultado da análise é publicado em `risco.resultados`.
 
+<p align="center">
+  <img src="docs/banner.jpeg" alt="Motor de Risco" width="100%">
+</p>
+
 ---
 
 ## Índice
