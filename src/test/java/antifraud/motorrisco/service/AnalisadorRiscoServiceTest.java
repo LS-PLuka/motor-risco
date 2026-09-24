@@ -4,10 +4,12 @@ import antifraud.motorrisco.dto.ResultadoAnaliseDTO;
 import antifraud.motorrisco.dto.TransacaoEventoDTO;
 import antifraud.motorrisco.enums.NivelRisco;
 import antifraud.motorrisco.model.ContextoAnalise;
+import antifraud.motorrisco.publisher.ResultadoAnalisePublisher;
 import antifraud.motorrisco.regras.RegraRisco;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,6 +29,9 @@ class AnalisadorRiscoServiceTest {
     @Mock
     private RegraRisco cadeiaRisco;
 
+    @Mock
+    private ResultadoAnalisePublisher resultadoAnalisePublisher;
+
     @InjectMocks
     private AnalisadorRiscoService service;
 
@@ -43,11 +48,14 @@ class AnalisadorRiscoServiceTest {
         ResultadoAnaliseDTO resultado = service.analisar(transacao);
 
         verify(cadeiaRisco).analisar(any(ContextoAnalise.class));
+        ArgumentCaptor<ResultadoAnaliseDTO> captor = ArgumentCaptor.forClass(ResultadoAnaliseDTO.class);
+        verify(resultadoAnalisePublisher).publicar(captor.capture());
+        assertThat(captor.getValue()).isSameAs(resultado);
         assertThat(resultado.transacaoId()).isEqualTo(transacao.transacaoId());
-        assertThat(resultado.contaId()).isEqualTo(transacao.contaId());
         assertThat(resultado.pontuacao()).isEqualTo(40);
-        assertThat(resultado.classificacao()).isEqualTo(NivelRisco.SINALIZADA);
+        assertThat(resultado.nivel()).isEqualTo(NivelRisco.SINALIZADA);
         assertThat(resultado.regrasDisparadas()).containsExactly("REGRA_TESTE");
+        assertThat(resultado.analisadoEm()).isNotNull();
     }
 
     private TransacaoEventoDTO criarEvento() {
