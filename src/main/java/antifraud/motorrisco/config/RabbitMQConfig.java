@@ -16,6 +16,9 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_TRANSACOES = "transacoes.exchange";
     public static final String FILA_ANALISE = "transacoes.analise";
     public static final String ROUTING_KEY_RISCO = "transacoes.risco";
+    public static final String EXCHANGE_RISCO = "risco.exchange";
+    public static final String FILA_RESULTADOS = "risco.resultados";
+    public static final String ROUTING_KEY_RESULTADO = "risco.resultado";
 
     @Bean
     public DirectExchange exchangeTransacoes() {
@@ -36,6 +39,27 @@ public class RabbitMQConfig {
                 .bind(filaAnalise)
                 .to(exchangeTransacoes)
                 .with(ROUTING_KEY_RISCO);
+    }
+
+    @Bean
+    public DirectExchange exchangeRisco() {
+        return new DirectExchange(EXCHANGE_RISCO);
+    }
+
+    @Bean
+    public Queue filaResultados() {
+        return new Queue(FILA_RESULTADOS, true);
+    }
+
+    @Bean
+    public Binding bindingResultados(
+            Queue filaResultados,
+            DirectExchange exchangeRisco
+    ) {
+        return BindingBuilder
+                .bind(filaResultados)
+                .to(exchangeRisco)
+                .with(ROUTING_KEY_RESULTADO);
     }
 
     @Bean
