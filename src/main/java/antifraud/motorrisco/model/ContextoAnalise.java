@@ -1,12 +1,16 @@
 package antifraud.motorrisco.model;
 
 import antifraud.motorrisco.dto.TransacaoEventoDTO;
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContextoAnalise {
 
+    @Getter
     private final TransacaoEventoDTO transacao;
+    @Getter
     private int pontuacao;
     private final List<String> regrasDisparadas = new ArrayList<>();
 
@@ -17,14 +21,6 @@ public class ContextoAnalise {
     public void registrarRegraDisparada(int pontos, String regra) {
         this.pontuacao += pontos;
         this.regrasDisparadas.add(regra);
-    }
-
-    public TransacaoEventoDTO getTransacao() {
-        return transacao;
-    }
-
-    public int getPontuacao() {
-        return pontuacao;
     }
 
     public List<String> getRegrasDisparadas() {
